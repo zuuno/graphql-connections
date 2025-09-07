@@ -9,8 +9,9 @@ module GraphQL
           gt lt lteq gteq
         ].freeze
 
-        def initialize(*args, primary_key: nil, **kwargs)
+        def initialize(*args, primary_key: nil, items_transformer: nil, **kwargs)
           @primary_key = primary_key
+          @items_transformer = items_transformer
 
           super(*args, **kwargs)
         end
@@ -81,7 +82,11 @@ module GraphQL
                 .to_a.reverse!
           end
 
-          nodes
+          if @items_transformer.blank?
+            nodes
+          else
+            @items_transformer.call(nodes)
+          end
         end
 
         def sliced_relation
