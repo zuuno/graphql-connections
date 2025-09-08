@@ -5,12 +5,15 @@ module GraphQL
     module PrimaryKey
       # Base class for PrimaryKey pagination implementations
       class Base < ::GraphQL::Connections::Base
+        attr_reader :items_cursor_key
+
         COMPARABLE_METHODS = %i[
           gt lt lteq gteq
         ].freeze
 
-        def initialize(*args, primary_key: nil, items_transformer: nil, **kwargs)
+        def initialize(*args, primary_key: nil, items_cursor_key: nil, items_transformer: nil, **kwargs)
           @primary_key = primary_key
+          @items_cursor_key = items_cursor_key || primary_key
           @items_transformer = items_transformer
 
           super(*args, **kwargs)
@@ -20,7 +23,7 @@ module GraphQL
           return false if nodes.empty?
 
           if last
-            items_exist?(type: :query, search: nodes.first[primary_key], page_type: :previous)
+            items_exist?(type: :query, search: nodes.first[items_cursor_key], page_type: :previous)
           elsif after
             items_exist?(type: :cursor, search: after_cursor, page_type: :previous)
           else
@@ -32,7 +35,7 @@ module GraphQL
           return false if nodes.empty?
 
           if first
-            items_exist?(type: :query, search: nodes.last[primary_key], page_type: :next)
+            items_exist?(type: :query, search: nodes.last[items_cursor_key], page_type: :next)
           elsif before
             items_exist?(type: :cursor, search: before_cursor, page_type: :next)
           else
@@ -41,7 +44,7 @@ module GraphQL
         end
 
         def cursor_for(item)
-          cursor = serialize(item[primary_key])
+          cursor = serialize(item[items_cursor_key])
           cursor = encode(cursor) if opaque_cursor
           cursor
         end
