@@ -49,6 +49,12 @@ module GraphQL
           cursor
         end
 
+        def unpaginated_count
+          scope = sliced_relation
+          scope.count
+        end
+
+
         private
 
         def page_comparable_method(query_type:, page_type:)
